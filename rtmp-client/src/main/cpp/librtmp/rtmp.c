@@ -28,6 +28,7 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
+#include <android/log.h>
 
 #include "rtmp_sys.h"
 #include "log.h"
@@ -1026,6 +1027,10 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
   RTMP_Log(RTMP_LOGDEBUG, "%s, ... connected, handshaking", __FUNCTION__);
 
   int handShakeRet = HandShake(r, TRUE);
+
+#ifdef __ANDROID__
+  __android_log_print(ANDROID_LOG_DEBUG, "by passing HandShake", NULL);
+#endif
 
   // Ignoring the value from HandShake
   if (FALSE)

@@ -99,10 +99,10 @@ ext {
 
     libraryDescription = 'RTMP Client for Android. It supports all architectures with 300KB total size'
 
-    siteUrl = 'https://github.com/ButterflyTV/Librtmp-Client-for-Android'
-    gitUrl = 'https://github.com/ButterflyTV/LibRtmp-Client-for-Android.git'
+    siteUrl = 'https://github.com/krishna-elear/Librtmp-Client-for-Android'
+    gitUrl = 'https://github.com/krishna-elear/LibRtmp-Client-for-Android.git'
 
-    libraryVersion = '3.1.0'
+    libraryVersion = '3.3.0'
 
     developerId = 'mekya'
     developerName = 'Ahmet Oguz Mermerkaya'
