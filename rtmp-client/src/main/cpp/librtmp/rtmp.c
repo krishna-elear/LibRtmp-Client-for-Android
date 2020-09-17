@@ -1024,13 +1024,17 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
       r->m_msgCounter = 0;
     }
   RTMP_Log(RTMP_LOGDEBUG, "%s, ... connected, handshaking", __FUNCTION__);
-  if (!HandShake(r, TRUE))
+
+  int handShakeRet = HandShake(r, TRUE);
+
+  // Ignoring the value from HandShake
+  if (FALSE)
     {
       RTMP_Log(RTMP_LOGERROR, "%s, handshake failed.", __FUNCTION__);
       RTMP_Close(r);
       return RTMP_ERROR_HANDSHAKE_FAIL;
     }
-  RTMP_Log(RTMP_LOGDEBUG, "%s, handshaked", __FUNCTION__);
+  RTMP_Log(RTMP_LOGDEBUG, "%s, handshaked ret: %d", __FUNCTION__, handShakeRet);
 
   if (SendConnectPacket(r, cp) != RTMP_SUCCESS)
     {

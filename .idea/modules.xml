@@ -3,6 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/LibRtmp-Client-for-Android.iml" filepath="$PROJECT_DIR$/LibRtmp-Client-for-Android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/test/LibRtmp-Client-for-Android-test.iml" filepath="$PROJECT_DIR$/.idea/modules/test/LibRtmp-Client-for-Android-test.iml" group="LibRtmp-Client-for-Android/test" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/coco-LibRtmp-Client-for-Android.iml" filepath="$PROJECT_DIR$/.idea/modules/coco-LibRtmp-Client-for-Android.iml" group="LibRtmp-Client-for-Android" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/rtmp-client/net.butterflytv.utils-rtmp-client.iml" filepath="$PROJECT_DIR$/.idea/modules/rtmp-client/net.butterflytv.utils-rtmp-client.iml" group="LibRtmp-Client-for-Android/rtmp-client" />
       <module fileurl="file://$PROJECT_DIR$/rtmp-client/rtmp-client.iml" filepath="$PROJECT_DIR$/rtmp-client/rtmp-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
     </modules>
