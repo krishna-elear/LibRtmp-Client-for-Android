@@ -3842,6 +3842,11 @@ RTMP_ReadPacket(RTMP *r, RTMPPacket *packet)
 static int
 HandShake(RTMP *r, int FP9HandShake)
 {
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, "%s, started", __FUNCTION__);
+#endif
+
   int i;
   uint32_t uptime, suptime;
   int bMatch;
@@ -3856,6 +3861,10 @@ HandShake(RTMP *r, int FP9HandShake)
 
   memset(&clientsig[4], 0, 4);
 
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, "%s, about to write", __FUNCTION__);
+#endif
+
 #ifdef _DEBUG
   for (i = 8; i < RTMP_SIG_SIZE; i++)
     clientsig[i] = 0xff;
@@ -3867,10 +3876,19 @@ HandShake(RTMP *r, int FP9HandShake)
   if (!WriteN(r, clientbuf, RTMP_SIG_SIZE + 1))
     return FALSE;
 
+
+#ifdef __ANDROID__
+  __android_log_print(ANDROID_LOG_ERROR, "%s, about to read", __FUNCTION__);
+#endif
+
   if (ReadN(r, &type, 1) != 1)	/* 0x03 or 0x06 */
     return FALSE;
 
   RTMP_Log(RTMP_LOGDEBUG, "%s: Type Answer   : %02X", __FUNCTION__, type);
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, "%s, about to write", __FUNCTION__);
+#endif
 
   if (type != clientbuf[0])
     RTMP_Log(RTMP_LOGWARNING, "%s: Type mismatch: client sent %d, server answered %d",
@@ -3888,9 +3906,19 @@ HandShake(RTMP *r, int FP9HandShake)
   RTMP_Log(RTMP_LOGDEBUG, "%s: FMS Version   : %d.%d.%d.%d", __FUNCTION__,
       serversig[4], serversig[5], serversig[6], serversig[7]);
 
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, "%s, about to 2nd write", __FUNCTION__);
+#endif
+
   /* 2nd part of handshake */
   if (!WriteN(r, serversig, RTMP_SIG_SIZE))
     return FALSE;
+
+
+#ifdef __ANDROID__
+   __android_log_print(ANDROID_LOG_ERROR, "%s, about to 2nd read", __FUNCTION__);
+#endif
 
   if (ReadN(r, serversig, RTMP_SIG_SIZE) != RTMP_SIG_SIZE)
     return FALSE;
@@ -3900,6 +3928,10 @@ HandShake(RTMP *r, int FP9HandShake)
     {
       RTMP_Log(RTMP_LOGWARNING, "%s, client signature does not match!", __FUNCTION__);
     }
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, "%s, completed", __FUNCTION__);
+#endif
   return TRUE;
 }
 
