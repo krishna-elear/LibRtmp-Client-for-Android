@@ -28,6 +28,11 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
+
+#ifndef __ANDROID__
+#error "stopping from compiling on other platforms"
+#endif
+
 #include <android/log.h>
 
 #include "rtmp_sys.h"
@@ -906,6 +911,11 @@ finish:
 RTMPResult
 RTMP_Connect0(RTMP *r, struct sockaddr * service)
 {
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_DEBUG, "%s, started", __FUNCTION__);
+#endif
+
   int on = 1;
   r->m_sb.sb_timedout = FALSE;
   r->m_pausing = 0;
@@ -928,6 +938,11 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
       if (connect(r->m_sb.sb_socket, service, sizeof(struct sockaddr)) < 0)
 	{
 	  int err = GetSockError();
+
+      #ifdef __ANDROID__
+          __android_log_print(ANDROID_LOG_ERROR, "%s, failed to connect socket. %d (%s)", __FUNCTION__, err, strerror(err));
+      #endif
+
 	  RTMP_Log(RTMP_LOGERROR, "%s, failed to connect socket. %d (%s)",
 	      __FUNCTION__, err, strerror(err));
 	  RTMP_Close(r);
@@ -937,8 +952,17 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
       if (r->Link.socksport)
 	{
 	  RTMP_Log(RTMP_LOGDEBUG, "%s ... SOCKS negotiation", __FUNCTION__);
+
+      #ifdef __ANDROID__
+      __android_log_print(ANDROID_LOG_ERROR, "%s ... SOCKS negotiation", __FUNCTION__);
+      #endif
+
 	  if (!SocksNegotiate(r))
 	    {
+          #ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, "%s, SOCKS negotiation failed.", __FUNCTION__);
+          #endif
+
 	      RTMP_Log(RTMP_LOGERROR, "%s, SOCKS negotiation failed.", __FUNCTION__);
 	      RTMP_Close(r);
 	      return RTMP_ERROR_SOCKS_NEGOTIATION_FAIL;
@@ -947,8 +971,13 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
     }
   else
     {
-      RTMP_Log(RTMP_LOGERROR, "%s, failed to create socket. Error: %d", __FUNCTION__,
-	  GetSockError());
+      int err = GetSockError();
+
+      #ifdef __ANDROID__
+      __android_log_print(ANDROID_LOG_ERROR, "%s, failed to create socket. Error: %d", __FUNCTION__, err);
+      #endif
+
+      RTMP_Log(RTMP_LOGERROR, "%s, failed to create socket. Error: %d", __FUNCTION__, err);
       return RTMP_ERROR_SOCKET_CREATE_FAIL;
     }
 
@@ -967,6 +996,10 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
   }
 
   setsockopt(r->m_sb.sb_socket, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on));
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_DEBUG, "%s, completed", __FUNCTION__);
+#endif
 
   return RTMP_SUCCESS;
 }
@@ -991,6 +1024,11 @@ RTMP_TLS_Accept(RTMP *r, void *ctx)
 RTMPResult
 RTMP_Connect1(RTMP *r, RTMPPacket *cp)
 {
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_DEBUG, "%s, started", __FUNCTION__);
+#endif
+
   if (r->Link.protocol & RTMP_FEATURE_SSL)
     {
 #if defined(CRYPTO) && !defined(NO_SSL)
@@ -1029,7 +1067,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
   int handShakeRet = HandShake(r, TRUE);
 
 #ifdef __ANDROID__
-  __android_log_print(ANDROID_LOG_DEBUG, "by passing HandShake", NULL);
+  __android_log_print(ANDROID_LOG_DEBUG, "%s, by passing HandShake when result: %d", __FUNCTION__, handShakeRet);
 #endif
 
   // Ignoring the value from HandShake
@@ -1041,12 +1079,25 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
     }
   RTMP_Log(RTMP_LOGDEBUG, "%s, handshaked ret: %d", __FUNCTION__, handShakeRet);
 
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_DEBUG, "%s, trying to SendConnectPacket", __FUNCTION__);
+#endif
+
   if (SendConnectPacket(r, cp) != RTMP_SUCCESS)
     {
+      #ifdef __ANDROID__
+        __android_log_print(ANDROID_LOG_DEBUG, "%s, SendConnectPacket failed", __FUNCTION__);
+      #endif
+
       RTMP_Log(RTMP_LOGERROR, "%s, RTMP connect failed.", __FUNCTION__);
       RTMP_Close(r);
       return RTMP_ERROR_CONNECT_FAIL;
     }
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_DEBUG, "%s, completed", __FUNCTION__);
+#endif
+
   return RTMP_SUCCESS;
 }
 
