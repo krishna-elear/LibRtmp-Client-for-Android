@@ -22,7 +22,7 @@ public class RtmpClient {
      */
     private final static int RTMP_SUCCESS = 0;
 
-    private final static int TIMEOUT_IN_MS = 10000;
+    private final static int TIMEOUT_IN_MS = 5 * 60 * 1000;
     private long rtmpPointer = 0;
 
     /** Socket send timeout value in milliseconds */

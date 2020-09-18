@@ -350,7 +350,7 @@ RTMP_Init(RTMP *r) {
     r->m_nServerBW = 2500000;
     r->m_fAudioCodecs = 3191.0;
     r->m_fVideoCodecs = 252.0;
-    r->Link.receiveTimeoutInMs = 5 * 6 * 10 * 1000; // 5 min
+    r->Link.receiveTimeoutInMs = 10000;
     r->Link.swfAge = 30;
 }
 
@@ -1074,6 +1074,7 @@ RTMP_Connect(RTMP *r, RTMPPacket *cp) {
 
 #ifdef __ANDROID__
     __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, started", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, with sendTimeout: %d, recvTimeout: %d", __FUNCTION__, r->Link.sendTimeoutInMs, r->Link.receiveTimeoutInMs);
 #endif
 
     struct sockaddr_in service;
