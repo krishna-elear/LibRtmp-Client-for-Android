@@ -913,7 +913,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
 {
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_DEBUG, "%s, started", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, "%s, started", __FUNCTION__);
 #endif
 
   int on = 1;
@@ -998,7 +998,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
   setsockopt(r->m_sb.sb_socket, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on));
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_DEBUG, "%s, completed", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, "%s, completed", __FUNCTION__);
 #endif
 
   return RTMP_SUCCESS;
@@ -1026,7 +1026,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
 {
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_DEBUG, "%s, started", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, "%s, started", __FUNCTION__);
 #endif
 
   if (r->Link.protocol & RTMP_FEATURE_SSL)
@@ -1067,7 +1067,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
   int handShakeRet = HandShake(r, TRUE);
 
 #ifdef __ANDROID__
-  __android_log_print(ANDROID_LOG_DEBUG, "%s, by passing HandShake when result: %d", __FUNCTION__, handShakeRet);
+  __android_log_print(ANDROID_LOG_ERROR, "%s, by passing HandShake when result: %d", __FUNCTION__, handShakeRet);
 #endif
 
   // Ignoring the value from HandShake
@@ -1080,13 +1080,13 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
   RTMP_Log(RTMP_LOGDEBUG, "%s, handshaked ret: %d", __FUNCTION__, handShakeRet);
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_DEBUG, "%s, trying to SendConnectPacket", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, "%s, trying to SendConnectPacket", __FUNCTION__);
 #endif
 
   if (SendConnectPacket(r, cp) != RTMP_SUCCESS)
     {
       #ifdef __ANDROID__
-        __android_log_print(ANDROID_LOG_DEBUG, "%s, SendConnectPacket failed", __FUNCTION__);
+        __android_log_print(ANDROID_LOG_ERROR, "%s, SendConnectPacket failed", __FUNCTION__);
       #endif
 
       RTMP_Log(RTMP_LOGERROR, "%s, RTMP connect failed.", __FUNCTION__);
@@ -1095,7 +1095,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
     }
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_DEBUG, "%s, completed", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, "%s, completed", __FUNCTION__);
 #endif
 
   return RTMP_SUCCESS;
