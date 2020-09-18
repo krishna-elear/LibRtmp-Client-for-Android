@@ -1432,12 +1432,16 @@ RTMP_ClientPacket(RTMP *r, RTMPPacket *packet) {
 }
 
 #ifdef _DEBUG
-                                                                                                                        extern FILE *netstackdump;
+extern FILE *netstackdump;
 extern FILE *netstackdump_read;
 #endif
 
 static int
 ReadN(RTMP *r, char *buffer, int n) {
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, started", __FUNCTION__);
+#endif
+
     int nOriginalSize = n;
     int avail;
     char *ptr;
@@ -1449,9 +1453,19 @@ ReadN(RTMP *r, char *buffer, int n) {
 #endif
 
     ptr = buffer;
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, protocol is: %d", __FUNCTION__, r->Link.protocol);
+#endif
+
     while (n > 0) {
         int nBytes = 0, nRead;
         if (r->Link.protocol & RTMP_FEATURE_HTTP) {
+
+        #ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, protocol detected as http", __FUNCTION__);
+        #endif
+
             int refill = 0;
             while (!r->m_resplen) {
                 int ret;
@@ -1480,17 +1494,38 @@ ReadN(RTMP *r, char *buffer, int n) {
             if (avail > r->m_resplen)
                 avail = r->m_resplen;
         } else {
+
+#ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, protocol is unknown", __FUNCTION__);
+#endif
             avail = r->m_sb.sb_size;
+
+#ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, avail: %d", __FUNCTION__, avail);
+#endif
+
             if (avail == 0) {
                 if (RTMPSockBuf_Fill(&r->m_sb) < 1) {
                     if (!r->m_sb.sb_timedout)
                         RTMP_Close(r);
+
+
+                  #ifdef __ANDROID__
+                    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, error in SockBuf_Fill", __FUNCTION__);
+                  #endif
+
                     return 0;
                 }
                 avail = r->m_sb.sb_size;
             }
         }
+
         nRead = ((n < avail) ? n : avail);
+
+#ifdef __ANDROID__
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, nRead: %d", __FUNCTION__, nRead);
+#endif
+
         if (nRead > 0 && r->m_sb.sb_start != NULL) {
             memcpy(ptr, r->m_sb.sb_start, nRead);
             r->m_sb.sb_start += nRead;
@@ -1511,6 +1546,11 @@ ReadN(RTMP *r, char *buffer, int n) {
 
         if (nBytes == 0) {
             RTMP_Log(RTMP_LOGDEBUG, "%s, RTMP socket closed by peer", __FUNCTION__);
+
+#ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, rtmp socket closed by peer", __FUNCTION__);
+#endif
+
             /*goto again; */
             RTMP_Close(r);
             break;
@@ -1520,15 +1560,27 @@ ReadN(RTMP *r, char *buffer, int n) {
             r->m_resplen -= nBytes;
 
 #ifdef CRYPTO
-                                                                                                                                if (r->Link.rc4keyIn)
-	{
+    if (r->Link.rc4keyIn) {
 	  RC4_encrypt(r->Link.rc4keyIn, nBytes, ptr);
 	}
+#endif
+
+#ifdef __ANDROID__
+        __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, nBytes: %d", __FUNCTION__, nBytes);
 #endif
 
         n -= nBytes;
         ptr += nBytes;
     }
+
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, ptr: %s", __FUNCTION__, ptr);
+#endif
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, completed", __FUNCTION__);
+#endif
 
     return nOriginalSize - n;
 }
