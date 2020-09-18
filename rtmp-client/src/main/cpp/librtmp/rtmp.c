@@ -77,6 +77,8 @@ TLS_CTX RTMP_TLS_ctx;
 
 static const int packetSize[] = { 12, 8, 4, 1 };
 
+static const char *TAG = "librtmp";
+
 int RTMP_ctrlC;
 
 const char RTMPProtocolStrings[][7] = {
@@ -889,11 +891,21 @@ add_addr_info(struct sockaddr_in *service, AVal *host, int port)
     }
 
   service->sin_addr.s_addr = inet_addr(hostname);
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, hostname: %s, inet_addr: %u", __FUNCTION__, hostname, service->sin_addr.s_addr);
+#endif
+
   if (service->sin_addr.s_addr == INADDR_NONE)
     {
       struct hostent *host = gethostbyname(hostname);
       if (host == NULL || host->h_addr == NULL)
 	{
+
+#ifdef __ANDROID__
+          __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, Problem accessing the DNS.", __FUNCTION__);
+#endif
+
 	  RTMP_Log(RTMP_LOGERROR, "Problem accessing the DNS. (addr: %s)", hostname);
 	  ret = RTMP_ERROR_DNS_NOT_REACHABLE;
 	  goto finish;
@@ -913,7 +925,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
 {
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, started", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, started", __FUNCTION__);
 #endif
 
   int on = 1;
@@ -940,7 +952,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
 	  int err = GetSockError();
 
       #ifdef __ANDROID__
-          __android_log_print(ANDROID_LOG_ERROR, "%s, failed to connect socket. %d (%s)", __FUNCTION__, err, strerror(err));
+          __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, failed to connect socket. %d (%s)", __FUNCTION__, err, strerror(err));
       #endif
 
 	  RTMP_Log(RTMP_LOGERROR, "%s, failed to connect socket. %d (%s)",
@@ -954,13 +966,13 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
 	  RTMP_Log(RTMP_LOGDEBUG, "%s ... SOCKS negotiation", __FUNCTION__);
 
       #ifdef __ANDROID__
-      __android_log_print(ANDROID_LOG_ERROR, "%s ... SOCKS negotiation", __FUNCTION__);
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s ... SOCKS negotiation", __FUNCTION__);
       #endif
 
 	  if (!SocksNegotiate(r))
 	    {
           #ifdef __ANDROID__
-            __android_log_print(ANDROID_LOG_ERROR, "%s, SOCKS negotiation failed.", __FUNCTION__);
+            __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, SOCKS negotiation failed.", __FUNCTION__);
           #endif
 
 	      RTMP_Log(RTMP_LOGERROR, "%s, SOCKS negotiation failed.", __FUNCTION__);
@@ -974,7 +986,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
       int err = GetSockError();
 
       #ifdef __ANDROID__
-      __android_log_print(ANDROID_LOG_ERROR, "%s, failed to create socket. Error: %d", __FUNCTION__, err);
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, failed to create socket. Error: %d", __FUNCTION__, err);
       #endif
 
       RTMP_Log(RTMP_LOGERROR, "%s, failed to create socket. Error: %d", __FUNCTION__, err);
@@ -998,7 +1010,7 @@ RTMP_Connect0(RTMP *r, struct sockaddr * service)
   setsockopt(r->m_sb.sb_socket, IPPROTO_TCP, TCP_NODELAY, (char *) &on, sizeof(on));
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, completed", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, completed", __FUNCTION__);
 #endif
 
   return RTMP_SUCCESS;
@@ -1026,7 +1038,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
 {
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, started", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, started", __FUNCTION__);
 #endif
 
   if (r->Link.protocol & RTMP_FEATURE_SSL)
@@ -1067,7 +1079,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
   int handShakeRet = HandShake(r, TRUE);
 
 #ifdef __ANDROID__
-  __android_log_print(ANDROID_LOG_ERROR, "%s, by passing HandShake when result: %d", __FUNCTION__, handShakeRet);
+  __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, by passing HandShake when result: %d", __FUNCTION__, handShakeRet);
 #endif
 
   // Ignoring the value from HandShake
@@ -1080,13 +1092,13 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
   RTMP_Log(RTMP_LOGDEBUG, "%s, handshaked ret: %d", __FUNCTION__, handShakeRet);
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, trying to SendConnectPacket", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, trying to SendConnectPacket", __FUNCTION__);
 #endif
 
   if (SendConnectPacket(r, cp) != RTMP_SUCCESS)
     {
       #ifdef __ANDROID__
-        __android_log_print(ANDROID_LOG_ERROR, "%s, SendConnectPacket failed", __FUNCTION__);
+        __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, SendConnectPacket failed", __FUNCTION__);
       #endif
 
       RTMP_Log(RTMP_LOGERROR, "%s, RTMP connect failed.", __FUNCTION__);
@@ -1095,7 +1107,7 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
     }
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, completed", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, completed", __FUNCTION__);
 #endif
 
   return RTMP_SUCCESS;
@@ -1104,6 +1116,11 @@ RTMP_Connect1(RTMP *r, RTMPPacket *cp)
 RTMPResult
 RTMP_Connect(RTMP *r, RTMPPacket *cp)
 {
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, started", __FUNCTION__);
+#endif
+
   struct sockaddr_in service;
   RTMPResult ret = RTMP_SUCCESS;
   if (!r->Link.hostname.av_len)
@@ -1114,6 +1131,12 @@ RTMP_Connect(RTMP *r, RTMPPacket *cp)
 
   if (r->Link.socksport)
     {
+
+#ifdef __ANDROID__
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, connecting via socks", __FUNCTION__);
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, socks -> hostname: %s, port: %d", __FUNCTION__, r->Link.sockshost.av_val, r->Link.socksport);
+#endif
+
       /* Connect via SOCKS */
       ret = add_addr_info(&service, &r->Link.sockshost, r->Link.socksport);
       if (ret != RTMP_SUCCESS)
@@ -1123,6 +1146,12 @@ RTMP_Connect(RTMP *r, RTMPPacket *cp)
     }
   else
     {
+
+#ifdef __ANDROID__
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, connecting directly", __FUNCTION__);
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, direct -> hostname: %s, port: %d", __FUNCTION__, r->Link.hostname.av_val, r->Link.port);
+#endif
+
       /* Connect directly */
       ret = add_addr_info(&service, &r->Link.hostname, r->Link.port);
       if (ret != RTMP_SUCCESS)
@@ -1131,11 +1160,20 @@ RTMP_Connect(RTMP *r, RTMPPacket *cp)
        }
     }
 
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, connect0", __FUNCTION__);
+#endif
+
   ret = RTMP_Connect0(r, (struct sockaddr *)&service);
   if (ret != RTMP_SUCCESS)
     return ret;
 
   r->m_bSendCounter = TRUE;
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, connect1", __FUNCTION__);
+#endif
 
   return RTMP_Connect1(r, cp);
 }
@@ -3844,7 +3882,7 @@ HandShake(RTMP *r, int FP9HandShake)
 {
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, started", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, started", __FUNCTION__);
 #endif
 
   int i;
@@ -3862,7 +3900,7 @@ HandShake(RTMP *r, int FP9HandShake)
   memset(&clientsig[4], 0, 4);
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, about to write", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, about to write", __FUNCTION__);
 #endif
 
 #ifdef _DEBUG
@@ -3878,7 +3916,7 @@ HandShake(RTMP *r, int FP9HandShake)
 
 
 #ifdef __ANDROID__
-  __android_log_print(ANDROID_LOG_ERROR, "%s, about to read", __FUNCTION__);
+  __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, about to read", __FUNCTION__);
 #endif
 
   if (ReadN(r, &type, 1) != 1)	/* 0x03 or 0x06 */
@@ -3887,7 +3925,7 @@ HandShake(RTMP *r, int FP9HandShake)
   RTMP_Log(RTMP_LOGDEBUG, "%s: Type Answer   : %02X", __FUNCTION__, type);
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, about to write", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, about to write", __FUNCTION__);
 #endif
 
   if (type != clientbuf[0])
@@ -3908,7 +3946,7 @@ HandShake(RTMP *r, int FP9HandShake)
 
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, about to 2nd write", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, about to 2nd write", __FUNCTION__);
 #endif
 
   /* 2nd part of handshake */
@@ -3917,7 +3955,7 @@ HandShake(RTMP *r, int FP9HandShake)
 
 
 #ifdef __ANDROID__
-   __android_log_print(ANDROID_LOG_ERROR, "%s, about to 2nd read", __FUNCTION__);
+   __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, about to 2nd read", __FUNCTION__);
 #endif
 
   if (ReadN(r, serversig, RTMP_SIG_SIZE) != RTMP_SIG_SIZE)
@@ -3930,7 +3968,7 @@ HandShake(RTMP *r, int FP9HandShake)
     }
 
 #ifdef __ANDROID__
-    __android_log_print(ANDROID_LOG_ERROR, "%s, completed", __FUNCTION__);
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, completed", __FUNCTION__);
 #endif
   return TRUE;
 }
@@ -5125,11 +5163,21 @@ static const char flvHeader[] = { 'F', 'L', 'V', 0x01,
 int
 RTMP_Read(RTMP *r, char *buf, int size)
 {
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, read started", __FUNCTION__);
+#endif
+
   int nRead = 0, total = 0;
 
   /* first time thru */
   if (!(r->m_read.flags & RTMP_READ_HEADER))
     {
+
+#ifdef __ANDROID__
+      __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, first time read", __FUNCTION__);
+#endif
+
       if (!(r->m_read.flags & RTMP_READ_RESUME))
 	{
 	  char *mybuf = malloc(HEADERBUF), *end = mybuf + HEADERBUF;
@@ -5152,6 +5200,10 @@ RTMP_Read(RTMP *r, char *buf, int size)
 		  r->m_read.buflen = 0;
 		  if (r->m_read.status == RTMP_READ_ERROR)
                     {
+
+#ifdef __ANDROID__
+              __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, RTMP_READ_ERROR", __FUNCTION__);
+#endif
 		      SetSockError(EINVAL);
                     }
 		  return nRead;
@@ -5221,11 +5273,21 @@ RTMP_Read(RTMP *r, char *buf, int size)
       size -= nRead;
       break;
     }
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, nRead: %d", __FUNCTION__, nRead);
+#endif
+
   if (nRead < RTMP_SUCCESS)
     r->m_read.status = RTMP_READ_ERROR;
 
   if (size < 0)
     total += size;
+
+#ifdef __ANDROID__
+  __android_log_print(ANDROID_LOG_ERROR, TAG,  "%s, read completed, total: %d:", __FUNCTION__, total);
+#endif
+
   return total;
 }
 
