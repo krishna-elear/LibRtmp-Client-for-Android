@@ -1505,7 +1505,8 @@ ReadN(RTMP *r, char *buffer, int n) {
 #endif
 
             if (avail == 0) {
-                if (RTMPSockBuf_Fill(&r->m_sb) < 1) {
+                int rtmpSockBuf_Fill;
+                if ((rtmpSockBuf_Fill = RTMPSockBuf_Fill(&r->m_sb)) < 1) {
                     if (!r->m_sb.sb_timedout)
                         RTMP_Close(r);
 
@@ -1517,6 +1518,10 @@ ReadN(RTMP *r, char *buffer, int n) {
                     return 0;
                 }
                 avail = r->m_sb.sb_size;
+
+#ifdef __ANDROID__
+                __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, rtmpSockBuf_Fill: %d, avali: %d", __FUNCTION__, rtmpSockBuf_Fill, avail);
+#endif
             }
         }
 
@@ -4145,7 +4150,7 @@ RTMP_Close(RTMP *r) {
     }
 
 #ifdef CRYPTO
-                                                                                                                            if (!(r->Link.protocol & RTMP_FEATURE_WRITE) || (r->Link.pFlags & RTMP_PUB_CLEAN))
+if (!(r->Link.protocol & RTMP_FEATURE_WRITE) || (r->Link.pFlags & RTMP_PUB_CLEAN))
     {
       free(r->Link.playpath0.av_val);
       r->Link.playpath0.av_val = NULL;
@@ -4182,6 +4187,10 @@ RTMP_Close(RTMP *r) {
 
 int
 RTMPSockBuf_Fill(RTMPSockBuf *sb) {
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, started", __FUNCTION__);
+#endif
+
     int nBytes;
 
     if (!sb->sb_size)
@@ -4190,21 +4199,33 @@ RTMPSockBuf_Fill(RTMPSockBuf *sb) {
     while (1) {
         nBytes = sizeof(sb->sb_buf) - 1 - sb->sb_size - (sb->sb_start - sb->sb_buf);
 #if defined(CRYPTO) && !defined(NO_SSL)
-                                                                                                                                if (sb->sb_ssl)
-	{
+    if (sb->sb_ssl)	{
 	  nBytes = TLS_read(sb->sb_ssl, sb->sb_start + sb->sb_size, nBytes);
-	}
-      else
+	} else
 #endif
         {
+#ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, recv started", __FUNCTION__);
+#endif
+
             nBytes = recv(sb->sb_socket, sb->sb_start + sb->sb_size, nBytes, 0);
+
+#ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, recv completed with: %d", __FUNCTION__, nBytes);
+#endif
         }
+
         if (nBytes != -1) {
             sb->sb_size += nBytes;
         } else {
             int sockerr = GetSockError();
-            RTMP_Log(RTMP_LOGDEBUG, "%s, recv returned %d. GetSockError(): %d (%s)",
-                     __FUNCTION__, nBytes, sockerr, strerror(sockerr));
+
+#ifdef __ANDROID__
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, recv returned %d. GetSockError(): %d (%s)", __FUNCTION__, nBytes, sockerr, strerror(sockerr));
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, !RTMP_ctrlC: %d", __FUNCTION__, !RTMP_ctrlC);
+#endif
+            RTMP_Log(RTMP_LOGDEBUG, "%s, recv returned %d. GetSockError(): %d (%s)", __FUNCTION__, nBytes, sockerr, strerror(sockerr));
+
             if (sockerr == EINTR && !RTMP_ctrlC)
                 continue;
 
@@ -4215,6 +4236,10 @@ RTMPSockBuf_Fill(RTMPSockBuf *sb) {
         }
         break;
     }
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_ERROR, TAG, "%s, completed", __FUNCTION__);
+#endif
 
     return nBytes;
 }
@@ -4228,11 +4253,9 @@ RTMPSockBuf_Send(RTMPSockBuf *sb, const char *buf, int len) {
 #endif
 
 #if defined(CRYPTO) && !defined(NO_SSL)
-                                                                                                                            if (sb->sb_ssl)
-    {
+    if (sb->sb_ssl) {
       rc = TLS_write(sb->sb_ssl, buf, len);
-    }
-  else
+    } else
 #endif
     {
         rc = send(sb->sb_socket, buf, len, 0);
@@ -4243,8 +4266,7 @@ RTMPSockBuf_Send(RTMPSockBuf *sb, const char *buf, int len) {
 int
 RTMPSockBuf_Close(RTMPSockBuf *sb) {
 #if defined(CRYPTO) && !defined(NO_SSL)
-                                                                                                                            if (sb->sb_ssl)
-    {
+    if (sb->sb_ssl) {
       TLS_shutdown(sb->sb_ssl);
       TLS_close(sb->sb_ssl);
       sb->sb_ssl = NULL;
