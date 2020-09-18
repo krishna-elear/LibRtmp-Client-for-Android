@@ -336,7 +336,7 @@ RTMP_Free(RTMP *r) {
 void
 RTMP_Init(RTMP *r) {
 #ifdef CRYPTO
-                                                                                                                            if (!RTMP_TLS_ctx)
+  if (!RTMP_TLS_ctx)
     RTMP_TLS_Init();
 #endif
 
@@ -350,7 +350,7 @@ RTMP_Init(RTMP *r) {
     r->m_nServerBW = 2500000;
     r->m_fAudioCodecs = 3191.0;
     r->m_fVideoCodecs = 252.0;
-    r->Link.receiveTimeoutInMs = 10000;
+    r->Link.receiveTimeoutInMs = 5 * 6 * 10 * 1000; // 5 min
     r->Link.swfAge = 30;
 }
 
